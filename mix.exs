@@ -49,7 +49,9 @@ defmodule ReadNever.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"}
+      {:plug_cowboy, "~> 2.5"},
+      {:gen_stage, "~> 1.2"},
+      {:deep_sinker, "~> 1.0"}
     ]
   end
 
