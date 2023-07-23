@@ -1,11 +1,13 @@
 defmodule ReadNever.BookShelf.BookPriorityChangeLog do
   use Ecto.Schema
   import Ecto.Changeset
+  alias ReadNever.BookShelf.Book
 
   schema "book_priority_changelog" do
     field :priority, Ecto.Enum, values: [:new, :reading, :read_next, :read_later, :read_never]
     field :change_datetime, :utc_datetime
-    field :book_id, :id
+
+    belongs_to :books, Book
 
     timestamps()
   end
