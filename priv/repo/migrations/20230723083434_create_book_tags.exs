@@ -3,7 +3,7 @@ defmodule ReadNever.Repo.Migrations.CreateBookTags do
 
   def change do
     create table(:book_tags) do
-      add :name, :string
+      add :name, :string, null:false
 
       timestamps()
     end
