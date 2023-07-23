@@ -1,0 +1,27 @@
+<.header>
+  Books directory <%= @books_directory.id %>
+  <:subtitle>This is a books_directory record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/books_directories/#{@books_directory}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit books_directory</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Directory path"><%= @books_directory.directory_path %></:item>
+  <:item title="Name"><%= @books_directory.name %></:item>
+</.list>
+
+<.back navigate={~p"/books_directories"}>Back to books_directories</.back>
+
+<.modal :if={@live_action == :edit} id="books_directory-modal" show on_cancel={JS.patch(~p"/books_directories/#{@books_directory}")}>
+  <.live_component
+    module={ReadNeverWeb.BooksDirectoryLive.FormComponent}
+    id={@books_directory.id}
+    title={@page_title}
+    action={@live_action}
+    books_directory={@books_directory}
+    patch={~p"/books_directories/#{@books_directory}"}
+  />
+</.modal>

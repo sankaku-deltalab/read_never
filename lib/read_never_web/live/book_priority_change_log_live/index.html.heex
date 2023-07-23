@@ -1,0 +1,42 @@
+<.header>
+  Listing Book priority changelog
+  <:actions>
+    <.link patch={~p"/book_priority_changelog/new"}>
+      <.button>New Book priority change log</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="book_priority_changelog"
+  rows={@streams.book_priority_changelog}
+  row_click={fn {_id, book_priority_change_log} -> JS.navigate(~p"/book_priority_changelog/#{book_priority_change_log}") end}
+>
+  <:col :let={{_id, book_priority_change_log}} label="Change datetime"><%= book_priority_change_log.change_datetime %></:col>
+  <:col :let={{_id, book_priority_change_log}} label="Priority"><%= book_priority_change_log.priority %></:col>
+  <:action :let={{_id, book_priority_change_log}}>
+    <div class="sr-only">
+      <.link navigate={~p"/book_priority_changelog/#{book_priority_change_log}"}>Show</.link>
+    </div>
+    <.link patch={~p"/book_priority_changelog/#{book_priority_change_log}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, book_priority_change_log}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: book_priority_change_log.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="book_priority_change_log-modal" show on_cancel={JS.patch(~p"/book_priority_changelog")}>
+  <.live_component
+    module={ReadNeverWeb.BookPriorityChangeLogLive.FormComponent}
+    id={@book_priority_change_log.id || :new}
+    title={@page_title}
+    action={@live_action}
+    book_priority_change_log={@book_priority_change_log}
+    patch={~p"/book_priority_changelog"}
+  />
+</.modal>

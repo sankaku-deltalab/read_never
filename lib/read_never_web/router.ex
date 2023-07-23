@@ -18,6 +18,38 @@ defmodule ReadNeverWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    # books_directories
+    live "/books_directories", BooksDirectoryLive.Index, :index
+    live "/books_directories/new", BooksDirectoryLive.Index, :new
+    live "/books_directories/:id/edit", BooksDirectoryLive.Index, :edit
+
+    live "/books_directories/:id", BooksDirectoryLive.Show, :show
+    live "/books_directories/:id/show/edit", BooksDirectoryLive.Show, :edit
+
+    # books
+    live "/books", BookLive.Index, :index
+    live "/books/new", BookLive.Index, :new
+    live "/books/:id/edit", BookLive.Index, :edit
+
+    live "/books/:id", BookLive.Show, :show
+    live "/books/:id/show/edit", BookLive.Show, :edit
+
+    # book_priority_changelog
+    live "/book_priority_changelog", BookPriorityChangeLogLive.Index, :index
+    live "/book_priority_changelog/new", BookPriorityChangeLogLive.Index, :new
+    live "/book_priority_changelog/:id/edit", BookPriorityChangeLogLive.Index, :edit
+
+    live "/book_priority_changelog/:id", BookPriorityChangeLogLive.Show, :show
+    live "/book_priority_changelog/:id/show/edit", BookPriorityChangeLogLive.Show, :edit
+
+    # book_tags
+    live "/book_tags", BookTagLive.Index, :index
+    live "/book_tags/new", BookTagLive.Index, :new
+    live "/book_tags/:id/edit", BookTagLive.Index, :edit
+
+    live "/book_tags/:id", BookTagLive.Show, :show
+    live "/book_tags/:id/show/edit", BookTagLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

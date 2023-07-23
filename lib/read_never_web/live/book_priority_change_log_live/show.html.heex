@@ -1,0 +1,27 @@
+<.header>
+  Book priority change log <%= @book_priority_change_log.id %>
+  <:subtitle>This is a book_priority_change_log record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/book_priority_changelog/#{@book_priority_change_log}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit book_priority_change_log</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Change datetime"><%= @book_priority_change_log.change_datetime %></:item>
+  <:item title="Priority"><%= @book_priority_change_log.priority %></:item>
+</.list>
+
+<.back navigate={~p"/book_priority_changelog"}>Back to book_priority_changelog</.back>
+
+<.modal :if={@live_action == :edit} id="book_priority_change_log-modal" show on_cancel={JS.patch(~p"/book_priority_changelog/#{@book_priority_change_log}")}>
+  <.live_component
+    module={ReadNeverWeb.BookPriorityChangeLogLive.FormComponent}
+    id={@book_priority_change_log.id}
+    title={@page_title}
+    action={@live_action}
+    book_priority_change_log={@book_priority_change_log}
+    patch={~p"/book_priority_changelog/#{@book_priority_change_log}"}
+  />
+</.modal>

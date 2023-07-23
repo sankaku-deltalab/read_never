@@ -1,0 +1,42 @@
+<.header>
+  Listing Books directories
+  <:actions>
+    <.link patch={~p"/books_directories/new"}>
+      <.button>New Books directory</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="books_directories"
+  rows={@streams.books_directories}
+  row_click={fn {_id, books_directory} -> JS.navigate(~p"/books_directories/#{books_directory}") end}
+>
+  <:col :let={{_id, books_directory}} label="Directory path"><%= books_directory.directory_path %></:col>
+  <:col :let={{_id, books_directory}} label="Name"><%= books_directory.name %></:col>
+  <:action :let={{_id, books_directory}}>
+    <div class="sr-only">
+      <.link navigate={~p"/books_directories/#{books_directory}"}>Show</.link>
+    </div>
+    <.link patch={~p"/books_directories/#{books_directory}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, books_directory}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: books_directory.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="books_directory-modal" show on_cancel={JS.patch(~p"/books_directories")}>
+  <.live_component
+    module={ReadNeverWeb.BooksDirectoryLive.FormComponent}
+    id={@books_directory.id || :new}
+    title={@page_title}
+    action={@live_action}
+    books_directory={@books_directory}
+    patch={~p"/books_directories"}
+  />
+</.modal>
