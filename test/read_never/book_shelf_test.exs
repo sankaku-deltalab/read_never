@@ -23,7 +23,9 @@ defmodule ReadNever.BookShelfTest do
     test "create_books_directory/1 with valid data creates a books_directory" do
       valid_attrs = %{name: "some name", directory_path: "some directory_path"}
 
-      assert {:ok, %BooksDirectory{} = books_directory} = BookShelf.create_books_directory(valid_attrs)
+      assert {:ok, %BooksDirectory{} = books_directory} =
+               BookShelf.create_books_directory(valid_attrs)
+
       assert books_directory.name == "some name"
       assert books_directory.directory_path == "some directory_path"
     end
@@ -36,21 +38,29 @@ defmodule ReadNever.BookShelfTest do
       books_directory = books_directory_fixture()
       update_attrs = %{name: "some updated name", directory_path: "some updated directory_path"}
 
-      assert {:ok, %BooksDirectory{} = books_directory} = BookShelf.update_books_directory(books_directory, update_attrs)
+      assert {:ok, %BooksDirectory{} = books_directory} =
+               BookShelf.update_books_directory(books_directory, update_attrs)
+
       assert books_directory.name == "some updated name"
       assert books_directory.directory_path == "some updated directory_path"
     end
 
     test "update_books_directory/2 with invalid data returns error changeset" do
       books_directory = books_directory_fixture()
-      assert {:error, %Ecto.Changeset{}} = BookShelf.update_books_directory(books_directory, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               BookShelf.update_books_directory(books_directory, @invalid_attrs)
+
       assert books_directory == BookShelf.get_books_directory!(books_directory.id)
     end
 
     test "delete_books_directory/1 deletes the books_directory" do
       books_directory = books_directory_fixture()
       assert {:ok, %BooksDirectory{}} = BookShelf.delete_books_directory(books_directory)
-      assert_raise Ecto.NoResultsError, fn -> BookShelf.get_books_directory!(books_directory.id) end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        BookShelf.get_books_directory!(books_directory.id)
+      end
     end
 
     test "change_books_directory/1 returns a books_directory changeset" do
@@ -77,21 +87,32 @@ defmodule ReadNever.BookShelfTest do
     end
 
     test "create_book/1 with valid data creates a book" do
-      valid_attrs = %{name: "some name", filepath: "some filepath", last_read_datetime: ~U[2023-07-22 08:34:00Z]}
+      valid_attrs = %{
+        name: "some name",
+        filepath: "some filepath",
+        last_read_datetime: ~U[2023-07-22 08:34:00Z]
+      }
 
-      assert {:ok, %Book{} = book} = BookShelf.create_book(valid_attrs)
+      books_directory = books_directory_fixture()
+      assert {:ok, %Book{} = book} = BookShelf.create_book(valid_attrs, books_directory)
       assert book.name == "some name"
       assert book.filepath == "some filepath"
       assert book.last_read_datetime == ~U[2023-07-22 08:34:00Z]
     end
 
     test "create_book/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = BookShelf.create_book(@invalid_attrs)
+      books_directory = books_directory_fixture()
+      assert {:error, %Ecto.Changeset{}} = BookShelf.create_book(@invalid_attrs, books_directory)
     end
 
     test "update_book/2 with valid data updates the book" do
       book = book_fixture()
-      update_attrs = %{name: "some updated name", filepath: "some updated filepath", last_read_datetime: ~U[2023-07-23 08:34:00Z]}
+
+      update_attrs = %{
+        name: "some updated name",
+        filepath: "some updated filepath",
+        last_read_datetime: ~U[2023-07-23 08:34:00Z]
+      }
 
       assert {:ok, %Book{} = book} = BookShelf.update_book(book, update_attrs)
       assert book.name == "some updated name"
@@ -131,45 +152,66 @@ defmodule ReadNever.BookShelfTest do
 
     test "get_book_priority_change_log!/1 returns the book_priority_change_log with given id" do
       book_priority_change_log = book_priority_change_log_fixture()
-      assert BookShelf.get_book_priority_change_log!(book_priority_change_log.id) == book_priority_change_log
+
+      assert BookShelf.get_book_priority_change_log!(book_priority_change_log.id) ==
+               book_priority_change_log
     end
 
     test "create_book_priority_change_log/1 with valid data creates a book_priority_change_log" do
       valid_attrs = %{priority: :new, change_datetime: ~U[2023-07-22 08:34:00Z]}
+      book = book_fixture()
 
-      assert {:ok, %BookPriorityChangeLog{} = book_priority_change_log} = BookShelf.create_book_priority_change_log(valid_attrs)
+      assert {:ok, %BookPriorityChangeLog{} = book_priority_change_log} =
+               BookShelf.create_book_priority_change_log(valid_attrs, book)
+
       assert book_priority_change_log.priority == :new
       assert book_priority_change_log.change_datetime == ~U[2023-07-22 08:34:00Z]
     end
 
     test "create_book_priority_change_log/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = BookShelf.create_book_priority_change_log(@invalid_attrs)
+      book = book_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               BookShelf.create_book_priority_change_log(@invalid_attrs, book)
     end
 
     test "update_book_priority_change_log/2 with valid data updates the book_priority_change_log" do
       book_priority_change_log = book_priority_change_log_fixture()
       update_attrs = %{priority: :reading, change_datetime: ~U[2023-07-23 08:34:00Z]}
 
-      assert {:ok, %BookPriorityChangeLog{} = book_priority_change_log} = BookShelf.update_book_priority_change_log(book_priority_change_log, update_attrs)
+      assert {:ok, %BookPriorityChangeLog{} = book_priority_change_log} =
+               BookShelf.update_book_priority_change_log(book_priority_change_log, update_attrs)
+
       assert book_priority_change_log.priority == :reading
       assert book_priority_change_log.change_datetime == ~U[2023-07-23 08:34:00Z]
     end
 
     test "update_book_priority_change_log/2 with invalid data returns error changeset" do
       book_priority_change_log = book_priority_change_log_fixture()
-      assert {:error, %Ecto.Changeset{}} = BookShelf.update_book_priority_change_log(book_priority_change_log, @invalid_attrs)
-      assert book_priority_change_log == BookShelf.get_book_priority_change_log!(book_priority_change_log.id)
+
+      assert {:error, %Ecto.Changeset{}} =
+               BookShelf.update_book_priority_change_log(book_priority_change_log, @invalid_attrs)
+
+      assert book_priority_change_log ==
+               BookShelf.get_book_priority_change_log!(book_priority_change_log.id)
     end
 
     test "delete_book_priority_change_log/1 deletes the book_priority_change_log" do
       book_priority_change_log = book_priority_change_log_fixture()
-      assert {:ok, %BookPriorityChangeLog{}} = BookShelf.delete_book_priority_change_log(book_priority_change_log)
-      assert_raise Ecto.NoResultsError, fn -> BookShelf.get_book_priority_change_log!(book_priority_change_log.id) end
+
+      assert {:ok, %BookPriorityChangeLog{}} =
+               BookShelf.delete_book_priority_change_log(book_priority_change_log)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        BookShelf.get_book_priority_change_log!(book_priority_change_log.id)
+      end
     end
 
     test "change_book_priority_change_log/1 returns a book_priority_change_log changeset" do
       book_priority_change_log = book_priority_change_log_fixture()
-      assert %Ecto.Changeset{} = BookShelf.change_book_priority_change_log(book_priority_change_log)
+
+      assert %Ecto.Changeset{} =
+               BookShelf.change_book_priority_change_log(book_priority_change_log)
     end
   end
 

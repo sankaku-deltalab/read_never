@@ -7,9 +7,8 @@ defmodule ReadNever.BookShelf.Book do
     field :name, :string
     field :filepath, :string
     field :last_read_datetime, :utc_datetime
-    field :books_directory_id, :id
 
-    belongs_to :books_directorys, BooksDirectory
+    belongs_to :books_directory, BooksDirectory
     many_to_many :book_tags, BookTag, join_through: "book_and_jook_tag_join"
 
     timestamps()

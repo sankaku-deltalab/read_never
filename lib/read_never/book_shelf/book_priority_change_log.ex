@@ -7,7 +7,7 @@ defmodule ReadNever.BookShelf.BookPriorityChangeLog do
     field :priority, Ecto.Enum, values: [:new, :reading, :read_next, :read_later, :read_never]
     field :change_datetime, :utc_datetime
 
-    belongs_to :books, Book
+    belongs_to :book, Book
 
     timestamps()
   end

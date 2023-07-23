@@ -18,7 +18,7 @@ defmodule ReadNever.BookShelf do
 
   """
   def list_books_directories do
-    Repo.all(BooksDirectory)
+    Repo.all(from d in BooksDirectory, preload: :books)
   end
 
   @doc """
@@ -35,7 +35,7 @@ defmodule ReadNever.BookShelf do
       ** (Ecto.NoResultsError)
 
   """
-  def get_books_directory!(id), do: Repo.get!(BooksDirectory, id)
+  def get_books_directory!(id), do: Repo.get!(BooksDirectory, id) |> Repo.preload(:books)
 
   @doc """
   Creates a books_directory.
@@ -114,7 +114,7 @@ defmodule ReadNever.BookShelf do
 
   """
   def list_books do
-    Repo.all(Book)
+    Repo.all(from b in Book, preload: [:books_directory, :book_tags])
   end
 
   @doc """
@@ -131,7 +131,7 @@ defmodule ReadNever.BookShelf do
       ** (Ecto.NoResultsError)
 
   """
-  def get_book!(id), do: Repo.get!(Book, id)
+  def get_book!(id), do: Repo.get!(Book, id) |> Repo.preload([:books_directory, :book_tags])
 
   @doc """
   Creates a book.
@@ -145,9 +145,10 @@ defmodule ReadNever.BookShelf do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_book(attrs \\ %{}) do
+  def create_book(%{} = attrs, %BooksDirectory{} = books_directory) do
     %Book{}
     |> Book.changeset(attrs)
+    |> Ecto.Changeset.put_assoc(:books_directory, books_directory)
     |> Repo.insert()
   end
 
@@ -210,7 +211,7 @@ defmodule ReadNever.BookShelf do
 
   """
   def list_book_priority_changelog do
-    Repo.all(BookPriorityChangeLog)
+    Repo.all(from c in BookPriorityChangeLog, preload: :book)
   end
 
   @doc """
@@ -227,7 +228,8 @@ defmodule ReadNever.BookShelf do
       ** (Ecto.NoResultsError)
 
   """
-  def get_book_priority_change_log!(id), do: Repo.get!(BookPriorityChangeLog, id)
+  def get_book_priority_change_log!(id),
+    do: Repo.get!(BookPriorityChangeLog, id) |> Repo.preload(:book)
 
   @doc """
   Creates a book_priority_change_log.
@@ -241,9 +243,10 @@ defmodule ReadNever.BookShelf do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_book_priority_change_log(attrs \\ %{}) do
+  def create_book_priority_change_log(%{} = attrs, %Book{} = book) do
     %BookPriorityChangeLog{}
     |> BookPriorityChangeLog.changeset(attrs)
+    |> Ecto.Changeset.put_assoc(:book, book)
     |> Repo.insert()
   end
 
@@ -290,7 +293,10 @@ defmodule ReadNever.BookShelf do
       %Ecto.Changeset{data: %BookPriorityChangeLog{}}
 
   """
-  def change_book_priority_change_log(%BookPriorityChangeLog{} = book_priority_change_log, attrs \\ %{}) do
+  def change_book_priority_change_log(
+        %BookPriorityChangeLog{} = book_priority_change_log,
+        attrs \\ %{}
+      ) do
     BookPriorityChangeLog.changeset(book_priority_change_log, attrs)
   end
 

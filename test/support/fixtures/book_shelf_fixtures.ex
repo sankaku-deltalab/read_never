@@ -7,7 +7,8 @@ defmodule ReadNever.BookShelfFixtures do
   @doc """
   Generate a unique books_directory directory_path.
   """
-  def unique_books_directory_directory_path, do: "some directory_path#{System.unique_integer([:positive])}"
+  def unique_books_directory_directory_path,
+    do: "some directory_path#{System.unique_integer([:positive])}"
 
   @doc """
   Generate a books_directory.
@@ -21,7 +22,8 @@ defmodule ReadNever.BookShelfFixtures do
       })
       |> ReadNever.BookShelf.create_books_directory()
 
-    books_directory
+    # Reload for assoc
+    ReadNever.BookShelf.get_books_directory!(books_directory.id)
   end
 
   @doc """
@@ -34,15 +36,23 @@ defmodule ReadNever.BookShelfFixtures do
   """
   def book_fixture(attrs \\ %{}) do
     {:ok, book} =
-      attrs
-      |> Enum.into(%{
-        name: "some name",
-        filepath: unique_book_filepath(),
-        last_read_datetime: ~U[2023-07-22 08:34:00Z]
-      })
-      |> ReadNever.BookShelf.create_book()
+      ReadNever.Repo.transaction(fn ->
+        books_dir = books_directory_fixture()
 
-    book
+        {:ok, book} =
+          attrs
+          |> Enum.into(%{
+            name: "some name",
+            filepath: unique_book_filepath(),
+            last_read_datetime: ~U[2023-07-22 08:34:00Z]
+          })
+          |> ReadNever.BookShelf.create_book(books_dir)
+
+        book
+      end)
+
+    # Reload for assoc
+    ReadNever.BookShelf.get_book!(book.id)
   end
 
   @doc """
@@ -50,14 +60,23 @@ defmodule ReadNever.BookShelfFixtures do
   """
   def book_priority_change_log_fixture(attrs \\ %{}) do
     {:ok, book_priority_change_log} =
-      attrs
-      |> Enum.into(%{
-        priority: :new,
-        change_datetime: ~U[2023-07-22 08:34:00Z]
-      })
-      |> ReadNever.BookShelf.create_book_priority_change_log()
+      ReadNever.Repo.transaction(fn ->
+        book = book_fixture()
 
-    book_priority_change_log
+        {:ok, change_log} =
+          attrs
+          |> Enum.into(%{
+            priority: :new,
+            change_datetime: ~U[2023-07-22 08:34:00Z],
+            book_id: book.id
+          })
+          |> ReadNever.BookShelf.create_book_priority_change_log(book)
+
+        change_log
+      end)
+
+    # Reload for assoc
+    ReadNever.BookShelf.get_book_priority_change_log!(book_priority_change_log.id)
   end
 
   @doc """
