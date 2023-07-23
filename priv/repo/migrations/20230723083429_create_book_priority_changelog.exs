@@ -3,9 +3,9 @@ defmodule ReadNever.Repo.Migrations.CreateBookPriorityChangelog do
 
   def change do
     create table(:book_priority_changelog) do
-      add :change_datetime, :utc_datetime, null:false
-      add :priority, :string, null:false
-      add :book_id, references(:books, on_delete: :nothing), null:false
+      add :change_datetime, :utc_datetime, null: false
+      add :priority, :string, null: false
+      add :book_id, references(:books, on_delete: :nothing), null: false
 
       timestamps()
     end

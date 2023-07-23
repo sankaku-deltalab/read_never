@@ -3,8 +3,8 @@ defmodule ReadNever.Repo.Migrations.CreateBooksDirectories do
 
   def change do
     create table(:books_directories) do
-      add :directory_path, :string, null:false
-      add :name, :string, null:false
+      add :directory_path, :string, null: false
+      add :name, :string, null: false
 
       timestamps()
     end
