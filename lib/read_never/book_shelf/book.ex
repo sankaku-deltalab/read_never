@@ -3,13 +3,20 @@ defmodule ReadNever.BookShelf.Book do
   import Ecto.Changeset
   alias ReadNever.BookShelf.{BooksDirectory, BookTag}
 
-  schema "books" do
-    field :name, :string
-    field :filepath, :string
-    field :last_read_datetime, :utc_datetime
+  @type atom_attrs :: %{
+          optional(:name) => String.t(),
+          optional(:filepath) => String.t(),
+          optional(:last_read_datetime) => %DateTime{} | nil,
+          optional(:book_tags) => [%{name: String.t()}]
+        }
 
-    belongs_to :books_directory, BooksDirectory
-    many_to_many :book_tags, BookTag, join_through: "book_and_jook_tag_join"
+  schema "books" do
+    field(:name, :string)
+    field(:filepath, :string)
+    field(:last_read_datetime, :utc_datetime)
+
+    belongs_to(:books_directory, BooksDirectory)
+    many_to_many(:book_tags, BookTag, join_through: "book_and_jook_tag_join")
 
     timestamps()
   end
@@ -18,7 +25,7 @@ defmodule ReadNever.BookShelf.Book do
   def changeset(book, attrs) do
     book
     |> cast(attrs, [:filepath, :name, :last_read_datetime])
-    |> validate_required([:filepath, :name, :last_read_datetime])
+    |> validate_required([:filepath, :name])
     |> unique_constraint(:filepath)
   end
 end

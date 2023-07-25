@@ -50,8 +50,8 @@ defmodule ReadNever.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:gen_stage, "~> 1.2"},
-      {:deep_sinker, "~> 1.0"}
+      {:deep_sinker, "~> 2.0"},
+      {:flow, "~> 1.2"}
     ]
   end
 
