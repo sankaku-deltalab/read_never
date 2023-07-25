@@ -17,7 +17,8 @@ defmodule ReadNever.Application do
       # Start Finch
       {Finch, name: ReadNever.Finch},
       # Start the Endpoint (http/https)
-      ReadNeverWeb.Endpoint
+      ReadNeverWeb.Endpoint,
+      BookCollect.Lifecycle.BookCollectSup
       # Start a worker by calling: ReadNever.Worker.start_link(arg)
       # {ReadNever.Worker, arg}
     ]
