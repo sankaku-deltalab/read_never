@@ -6,7 +6,7 @@ defmodule BookCollect.Boundary.BookGatherer do
   @me __MODULE__
 
   def start_link(_) do
-    GenServer.start_link(__MODULE__, nil)
+    GenServer.start_link(__MODULE__, nil, name: @me)
   end
 
   def request_start(books_directories) do
@@ -18,7 +18,7 @@ defmodule BookCollect.Boundary.BookGatherer do
   end
 
   def finished() do
-    GenServer.call(@me, :finished)
+    GenServer.cast(@me, :finished)
   end
 
   def is_running?() do
@@ -29,47 +29,53 @@ defmodule BookCollect.Boundary.BookGatherer do
 
   @impl true
   def init(_) do
-    {:ok, %{gatherer_pid: nil}}
+    {:ok, %{gatherer_task: nil}}
   end
 
   @impl true
   def handle_call(
         {:request_start, books_directories},
         _from,
-        %{gatherer_pid: gatherer_pid} = state
+        %{gatherer_task: gatherer_task} = state
       ) do
-    if gatherer_pid != nil, do: Task.shutdown(gatherer_pid, :brutal_kill)
+    if gatherer_task != nil, do: Task.shutdown(gatherer_task, :brutal_kill)
 
-    {:ok, pid} =
-      Task.start(fn -> BookGathering.search_and_create_books(books_directories, &finished/0) end)
+    task =
+      Task.async(fn -> BookGathering.search_and_create_books(books_directories, &finished/0) end)
 
     maybe_status_changed(true)
-    state = %{state | gatherer_pid: pid}
+    state = %{state | gatherer_task: task}
     {:reply, :ok, state}
   end
 
   @impl true
-  def handle_call(:request_abort, _from, %{gatherer_pid: gatherer_pid} = state) do
-    if gatherer_pid != nil, do: Task.shutdown(gatherer_pid, :brutal_kill)
+  def handle_call(:request_abort, _from, %{gatherer_task: gatherer_task} = state) do
+    if gatherer_task != nil, do: Task.shutdown(gatherer_task, :brutal_kill)
 
     maybe_status_changed(false)
-    state = %{state | gatherer_pid: nil}
+    state = %{state | gatherer_task: nil}
     {:reply, :ok, state}
   end
 
   @impl true
-  def handle_call(:finished, _from, %{gatherer_pid: gatherer_pid} = state) do
-    if gatherer_pid != nil, do: Task.await(gatherer_pid)
-
-    maybe_status_changed(false)
-    state = %{state | gatherer_pid: nil}
-    {:reply, :ok, state}
-  end
-
-  @impl true
-  def handle_call(:is_running, _from, %{gatherer_pid: gatherer_pid} = state) do
-    is_running = gatherer_pid != nil
+  def handle_call(:is_running, _from, %{gatherer_task: gatherer_task} = state) do
+    is_running = gatherer_task != nil
     {:reply, is_running, state}
+  end
+
+  @impl true
+  def handle_cast(:finished, %{gatherer_task: gatherer_task} = state) do
+    if gatherer_task != nil, do: Task.shutdown(gatherer_task)
+
+    maybe_status_changed(false)
+    state = %{state | gatherer_task: nil}
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(event, state) do
+    IO.inspect(event, state)
+    {:noreply, state}
   end
 
   defp maybe_status_changed(is_running) when is_boolean(is_running) do

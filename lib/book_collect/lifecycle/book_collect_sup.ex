@@ -9,7 +9,7 @@ defmodule BookCollect.Lifecycle.BookCollectSup do
 
   @impl true
   def init(_) do
-    children = [{BookGatherer, nil}]
+    children = [BookGatherer]
 
     Supervisor.init(children, strategy: :one_for_one)
   end
