@@ -79,6 +79,10 @@ defmodule BookCollect.Boundary.BookGatherer do
   end
 
   defp maybe_status_changed(is_running) when is_boolean(is_running) do
-    # TODO: call pubsub
+    ReadNeverWeb.Endpoint.broadcast!(
+      "book_gathering",
+      "status_changed",
+      %{is_running: is_running}
+    )
   end
 end

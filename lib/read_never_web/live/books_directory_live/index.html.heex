@@ -7,6 +7,14 @@
   </:actions>
 </.header>
 
+<div>
+  <%= if not @is_book_gathering do %>
+    <.button phx-click="load_books">Load books</.button>
+  <% else %>
+    <.button disable>(Loading)</.button>
+  <% end %>
+</div>
+
 <.table
   id="books_directories"
   rows={@streams.books_directories}
