@@ -44,4 +44,14 @@ defmodule ReadNeverWeb.BookLive.Index do
 
     {:noreply, stream_delete(socket, :books, book)}
   end
+
+  @impl true
+  def handle_event("open_book", %{"id" => id}, socket) do
+    book = BookShelf.get_book!(id)
+    {:ok, _} = BookShelf.update_book(book, %{last_read_datetime: DateTime.now!("Etc/UTC")})
+
+    # TODO: test on windows
+    System.cmd("cmd", ["start", book.filepath])
+    {:noreply, socket}
+  end
 end
