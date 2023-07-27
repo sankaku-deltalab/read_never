@@ -54,4 +54,17 @@ defmodule ReadNeverWeb.BookLive.Index do
     System.cmd("cmd", ["start", book.filepath])
     {:noreply, socket}
   end
+
+  @impl true
+  def handle_event("set_book_priority", %{"id" => id, "priority" => priority}, socket) do
+    book = BookShelf.get_book!(id)
+
+    {:ok, _} =
+      BookShelf.create_book_priority_change_log(
+        %{change_datetime: DateTime.now!("Etc/UTC"), priority: priority},
+        book
+      )
+
+    {:noreply, socket}
+  end
 end

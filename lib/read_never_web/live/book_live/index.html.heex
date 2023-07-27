@@ -32,6 +32,11 @@
   <:action :let={{_id, book}}>
     <.button phx-click={JS.push("open_book", value: %{id: book.id})} >Open</.button>
   </:action>
+  <:action :let={{_id, book}}>
+    <%= for {priority, name} <- [{:new, "new"}, {:reading, "reading"}, {:read_next, "read-next"}, {:read_later, "read-later"}, {:read_never, "read-never"}] do %>
+        <.button phx-click={JS.push("set_book_priority", value: %{id: book.id, priority: priority})} ><%= name%></.button>
+    <% end %>
+  </:action>
 </.table>
 
 <.modal :if={@live_action in [:new, :edit]} id="book-modal" show on_cancel={JS.patch(~p"/books")}>
