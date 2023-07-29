@@ -32,16 +32,16 @@ defmodule ReadNever.BookShelf.Book do
   end
 
   def current_priority(
-        %__MODULE__{book_priority_change_logs: %Ecto.Association.NotLoaded{}} = book
+        %__MODULE__{book_priority_change_logs: %Ecto.Association.NotLoaded{}} = _book
       ) do
     :new
   end
 
-  def current_priority(%__MODULE__{book_priority_change_logs: []} = book) do
+  def current_priority(%__MODULE__{book_priority_change_logs: []} = _book) do
     :new
   end
 
-  def current_priority(%__MODULE__{book_priority_change_logs: priorities = [_ | _]} = book) do
+  def current_priority(%__MODULE__{book_priority_change_logs: priorities = [_ | _]} = _book) do
     priorities
     |> Enum.sort_by(fn p -> p.change_datetime end, :desc)
     |> Enum.map(fn p -> p.priority end)
