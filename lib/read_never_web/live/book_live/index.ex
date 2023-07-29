@@ -65,6 +65,9 @@ defmodule ReadNeverWeb.BookLive.Index do
         book
       )
 
+    reloaded_book = BookShelf.get_book!(id)
+    socket = socket |> stream_insert(:books, reloaded_book)
+
     {:noreply, socket}
   end
 end

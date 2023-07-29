@@ -33,6 +33,9 @@
     <.button phx-click={JS.push("open_book", value: %{id: book.id})} >Open</.button>
   </:action>
   <:action :let={{_id, book}}>
+    <div><%= Book.current_priority(book) %></div>
+  </:action>
+  <:action :let={{_id, book}}>
     <%= for {priority, name} <- [{:new, "new"}, {:reading, "reading"}, {:read_next, "read-next"}, {:read_later, "read-later"}, {:read_never, "read-never"}] do %>
         <.button phx-click={JS.push("set_book_priority", value: %{id: book.id, priority: priority})} ><%= name%></.button>
     <% end %>
