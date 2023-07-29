@@ -44,27 +44,6 @@ defmodule ReadNever.BookShelf.Book do
     |> unique_constraint(:filepath)
   end
 
-  defp build_tags_from_text(tags_as_text, book)
-       when is_bitstring(tags_as_text) do
-    old_tags_map =
-      book.book_tags
-      |> Enum.map(fn t -> {t.name, t} end)
-      |> Map.new()
-
-    tags_as_text
-    |> split_tags_as_text()
-    |> Enum.map(fn n ->
-      cond do
-        Map.has_key?(old_tags_map, n) -> Map.fetch!(old_tags_map, n)
-        true -> %BookTag{name: n}
-      end
-    end)
-  end
-
-  defp build_tags_from_text(_tags_as_text, _book) do
-    []
-  end
-
   def split_tags_as_text(tags_as_text) when is_bitstring(tags_as_text) do
     tags_as_text
     |> String.trim()
