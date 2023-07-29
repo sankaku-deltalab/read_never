@@ -18,7 +18,7 @@ defmodule ReadNever.BookShelf do
 
   """
   def list_books_directories do
-    Repo.all(from d in BooksDirectory, preload: :books)
+    Repo.all(from(d in BooksDirectory, preload: :books))
   end
 
   @doc """
@@ -114,7 +114,7 @@ defmodule ReadNever.BookShelf do
 
   """
   def list_books do
-    Repo.all(from b in Book, preload: [:books_directory, :book_tags])
+    Repo.all(from(b in Book, preload: [:books_directory, :book_tags, :book_priority_change_logs]))
   end
 
   @doc """
@@ -131,7 +131,10 @@ defmodule ReadNever.BookShelf do
       ** (Ecto.NoResultsError)
 
   """
-  def get_book!(id), do: Repo.get!(Book, id) |> Repo.preload([:books_directory, :book_tags])
+  def get_book!(id),
+    do:
+      Repo.get!(Book, id)
+      |> Repo.preload([:books_directory, :book_tags, :book_priority_change_logs])
 
   @doc """
   Creates a book.
@@ -211,7 +214,7 @@ defmodule ReadNever.BookShelf do
 
   """
   def list_book_priority_changelog do
-    Repo.all(from c in BookPriorityChangeLog, preload: :book)
+    Repo.all(from(c in BookPriorityChangeLog, preload: :book))
   end
 
   @doc """

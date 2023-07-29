@@ -1,7 +1,7 @@
 defmodule ReadNever.BookShelf.Book do
   use Ecto.Schema
   import Ecto.Changeset
-  alias ReadNever.BookShelf.{BooksDirectory, BookTag}
+  alias ReadNever.BookShelf.{BooksDirectory, BookTag, BookPriorityChangeLog}
 
   @type atom_attrs :: %{
           optional(:name) => String.t(),
@@ -18,6 +18,8 @@ defmodule ReadNever.BookShelf.Book do
     belongs_to(:books_directory, BooksDirectory)
     many_to_many(:book_tags, BookTag, join_through: "book_and_jook_tag_join")
 
+    has_many(:book_priority_change_logs, BookPriorityChangeLog)
+
     timestamps()
   end
 
@@ -27,5 +29,22 @@ defmodule ReadNever.BookShelf.Book do
     |> cast(attrs, [:filepath, :name, :last_read_datetime])
     |> validate_required([:filepath, :name])
     |> unique_constraint(:filepath)
+  end
+
+  def current_priority(
+        %__MODULE__{book_priority_change_logs: %Ecto.Association.NotLoaded{}} = book
+      ) do
+    :new
+  end
+
+  def current_priority(%__MODULE__{book_priority_change_logs: []} = book) do
+    :new
+  end
+
+  def current_priority(%__MODULE__{book_priority_change_logs: priorities = [_ | _]} = book) do
+    priorities
+    |> Enum.sort_by(fn p -> p.change_datetime end, :desc)
+    |> Enum.map(fn p -> p.priority end)
+    |> List.first(:new)
   end
 end
