@@ -35,7 +35,8 @@ defmodule ReadNever.BookShelf do
       ** (Ecto.NoResultsError)
 
   """
-  def get_books_directory!(id), do: Repo.get!(BooksDirectory, id) |> Repo.preload(:books)
+  def get_books_directory!(id),
+    do: Repo.get!(BooksDirectory, id) |> Repo.preload(:books)
 
   @doc """
   Creates a books_directory.
@@ -114,7 +115,11 @@ defmodule ReadNever.BookShelf do
 
   """
   def list_books do
-    Repo.all(from(b in Book, preload: [:books_directory, :book_tags, :book_priority_change_logs]))
+    Repo.all(
+      from(b in Book,
+        preload: [:books_directory, :book_tags, :book_priority_change_logs]
+      )
+    )
   end
 
   @doc """
@@ -149,10 +154,24 @@ defmodule ReadNever.BookShelf do
 
   """
   def create_book(%{} = attrs, %BooksDirectory{} = books_directory) do
-    %Book{}
-    |> Book.changeset(attrs)
-    |> Ecto.Changeset.put_assoc(:books_directory, books_directory)
-    |> Repo.insert()
+    Repo.transaction(fn ->
+      tags =
+        (Map.get(attrs, :book_tags, nil) || Map.get(attrs, "book_tags", nil) || [])
+        |> Enum.map(& &1.name)
+        |> get_book_tags_by_names()
+
+      book_insert_result =
+        %Book{}
+        |> Book.changeset(attrs)
+        |> Ecto.Changeset.put_assoc(:books_directory, books_directory)
+        |> Ecto.Changeset.put_assoc(:book_tags, tags)
+        |> Repo.insert()
+
+      case book_insert_result do
+        {:ok, book} -> book
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """
@@ -265,7 +284,10 @@ defmodule ReadNever.BookShelf do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_book_priority_change_log(%BookPriorityChangeLog{} = book_priority_change_log, attrs) do
+  def update_book_priority_change_log(
+        %BookPriorityChangeLog{} = book_priority_change_log,
+        attrs
+      ) do
     book_priority_change_log
     |> BookPriorityChangeLog.changeset(attrs)
     |> Repo.update()
@@ -333,6 +355,33 @@ defmodule ReadNever.BookShelf do
 
   """
   def get_book_tag!(id), do: Repo.get!(BookTag, id)
+
+  @doc """
+  Load tags by name and replace args to BookTags.
+  If given name is not in database, it will be replaced to non-id BookTag.
+
+  ## Examples
+
+      iex> get_book_tags_by_names([%{name: "a"}, %{name: "x"}, %{name: "b"}])
+      [%BookTag{id: 1, name: "a"}, %BookTag{name: "x"}, %BookTag{id: 2, name: "b"}]
+
+  """
+  def get_book_tags_by_names(names) do
+    query = from(t in BookTag, where: t.name in ^names)
+
+    tags_map =
+      Repo.all(query)
+      |> Enum.map(fn t -> {t.name, t} end)
+      |> Map.new()
+
+    names
+    |> Enum.map(fn n ->
+      cond do
+        Map.has_key?(tags_map, n) -> Map.fetch!(tags_map, n)
+        true -> %BookTag{name: n}
+      end
+    end)
+  end
 
   @doc """
   Creates a book_tag.
