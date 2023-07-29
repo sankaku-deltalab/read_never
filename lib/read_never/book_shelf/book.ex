@@ -14,6 +14,7 @@ defmodule ReadNever.BookShelf.Book do
     field(:name, :string)
     field(:filepath, :string)
     field(:last_read_datetime, :utc_datetime)
+    field(:tags_as_text, :string, virtual: true)
 
     belongs_to(:books_directory, BooksDirectory)
     many_to_many(:book_tags, BookTag, join_through: "book_and_jook_tag_join")

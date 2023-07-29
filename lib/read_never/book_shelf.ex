@@ -120,6 +120,7 @@ defmodule ReadNever.BookShelf do
         preload: [:books_directory, :book_tags, :book_priority_change_logs]
       )
     )
+    |> Enum.map(&build_tags_as_text/1)
   end
 
   @doc """
@@ -140,6 +141,7 @@ defmodule ReadNever.BookShelf do
     do:
       Repo.get!(Book, id)
       |> Repo.preload([:books_directory, :book_tags, :book_priority_change_logs])
+      |> build_tags_as_text()
 
   @doc """
   Creates a book.
@@ -168,7 +170,7 @@ defmodule ReadNever.BookShelf do
         |> Repo.insert()
 
       case book_insert_result do
-        {:ok, book} -> book
+        {:ok, book} -> book |> build_tags_as_text()
         {:error, changeset} -> Repo.rollback(changeset)
       end
     end)
@@ -219,6 +221,20 @@ defmodule ReadNever.BookShelf do
   """
   def change_book(%Book{} = book, attrs \\ %{}) do
     Book.changeset(book, attrs)
+  end
+
+  defp build_tags_as_text(%Book{book_tags: book_tags} = book) when is_list(book_tags) do
+    tags_as_text =
+      book_tags
+      |> Enum.map(& &1.name)
+      |> Enum.uniq()
+      |> Enum.join(" ")
+
+    Map.put(book, :tags_as_text, tags_as_text)
+  end
+
+  defp build_tags_as_text(%Book{book_tags: _} = book) do
+    Map.put(book, :tags_as_text, "")
   end
 
   alias ReadNever.BookShelf.BookPriorityChangeLog
