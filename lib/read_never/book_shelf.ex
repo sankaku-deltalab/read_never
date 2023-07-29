@@ -194,6 +194,29 @@ defmodule ReadNever.BookShelf do
     |> Repo.update()
   end
 
+  def update_book_with_tags_as_text(%Book{} = book, attrs) do
+    Repo.transaction(fn ->
+      tags_as_text =
+        Map.get(attrs, :tags_as_text, nil) || Map.get(attrs, "tags_as_text", nil) || ""
+
+      book_tags =
+        tags_as_text
+        |> Book.split_tags_as_text()
+        |> get_book_tags_by_names()
+
+      book_update_result =
+        book
+        |> Book.changeset(attrs)
+        |> Ecto.Changeset.put_assoc(:book_tags, book_tags)
+        |> Repo.update()
+
+      case book_update_result do
+        {:ok, book} -> book |> build_tags_as_text()
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
+  end
+
   @doc """
   Deletes a book.
 
@@ -221,6 +244,10 @@ defmodule ReadNever.BookShelf do
   """
   def change_book(%Book{} = book, attrs \\ %{}) do
     Book.changeset(book, attrs)
+  end
+
+  def change_book_use_tags_as_text(%Book{} = book, attrs \\ %{}) do
+    Book.changeset_use_tags_as_text(book, attrs)
   end
 
   defp build_tags_as_text(%Book{book_tags: book_tags} = book) when is_list(book_tags) do
@@ -378,7 +405,7 @@ defmodule ReadNever.BookShelf do
 
   ## Examples
 
-      iex> get_book_tags_by_names([%{name: "a"}, %{name: "x"}, %{name: "b"}])
+      iex> get_book_tags_by_names(["a", "x", "b"])
       [%BookTag{id: 1, name: "a"}, %BookTag{name: "x"}, %BookTag{id: 2, name: "b"}]
 
   """

@@ -14,10 +14,15 @@ defmodule ReadNever.BookShelf.Book do
     field(:name, :string)
     field(:filepath, :string)
     field(:last_read_datetime, :utc_datetime)
-    field(:tags_as_text, :string, virtual: true)
+    field(:tags_as_text, :string, default: "", virtual: true)
 
     belongs_to(:books_directory, BooksDirectory)
-    many_to_many(:book_tags, BookTag, join_through: "book_and_jook_tag_join")
+
+    many_to_many(:book_tags, BookTag,
+      join_through: "book_and_jook_tag_join",
+      on_replace: :delete,
+      unique: true
+    )
 
     has_many(:book_priority_change_logs, BookPriorityChangeLog)
 
@@ -30,6 +35,41 @@ defmodule ReadNever.BookShelf.Book do
     |> cast(attrs, [:filepath, :name, :last_read_datetime])
     |> validate_required([:filepath, :name])
     |> unique_constraint(:filepath)
+  end
+
+  def changeset_use_tags_as_text(%__MODULE__{} = book, %{} = attrs) do
+    book
+    |> cast(attrs, [:filepath, :name, :last_read_datetime, :tags_as_text])
+    |> validate_required([:filepath, :name])
+    |> unique_constraint(:filepath)
+  end
+
+  defp build_tags_from_text(tags_as_text, book)
+       when is_bitstring(tags_as_text) do
+    old_tags_map =
+      book.book_tags
+      |> Enum.map(fn t -> {t.name, t} end)
+      |> Map.new()
+
+    tags_as_text
+    |> split_tags_as_text()
+    |> Enum.map(fn n ->
+      cond do
+        Map.has_key?(old_tags_map, n) -> Map.fetch!(old_tags_map, n)
+        true -> %BookTag{name: n}
+      end
+    end)
+  end
+
+  defp build_tags_from_text(_tags_as_text, _book) do
+    []
+  end
+
+  def split_tags_as_text(tags_as_text) when is_bitstring(tags_as_text) do
+    tags_as_text
+    |> String.trim()
+    |> String.split()
+    |> Enum.uniq()
   end
 
   def current_priority(

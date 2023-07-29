@@ -22,6 +22,7 @@ defmodule ReadNeverWeb.BookLive.FormComponent do
         <.input field={@form[:filepath]} type="text" label="Filepath" />
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:last_read_datetime]} type="datetime-local" label="Last read datetime" />
+        <.input field={@form[:tags_as_text]} type="text" label="Tags" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Book</.button>
         </:actions>
@@ -32,7 +33,7 @@ defmodule ReadNeverWeb.BookLive.FormComponent do
 
   @impl true
   def update(%{book: book} = assigns, socket) do
-    changeset = BookShelf.change_book(book)
+    changeset = BookShelf.change_book_use_tags_as_text(book)
 
     {:ok,
      socket
@@ -44,7 +45,7 @@ defmodule ReadNeverWeb.BookLive.FormComponent do
   def handle_event("validate", %{"book" => book_params}, socket) do
     changeset =
       socket.assigns.book
-      |> BookShelf.change_book(book_params)
+      |> BookShelf.change_book_use_tags_as_text(book_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -55,7 +56,7 @@ defmodule ReadNeverWeb.BookLive.FormComponent do
   end
 
   defp save_book(socket, :edit, book_params) do
-    case BookShelf.update_book(socket.assigns.book, book_params) do
+    case BookShelf.update_book_with_tags_as_text(socket.assigns.book, book_params) do
       {:ok, book} ->
         notify_parent({:saved, book})
 
