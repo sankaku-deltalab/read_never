@@ -69,11 +69,12 @@ defmodule BookCollect.Core.BookFile do
   ## Examples
 
       iex> alias BookCollect.Core.BookFile
-      iex> BookFile.get_tags_from_rel_path("a/b/c/d/e/f/book.pdf")
-      ["a", "b", "c", "d", "e", "f"]
+      iex> BookFile.get_tags_from_rel_path("a/b/c/d/e/f 2/book.pdf")
+      ["a", "b", "c", "d", "e", "f_2"]
   """
   def get_tags_from_rel_path(filepath_rel) when is_bitstring(filepath_rel) do
     filepath_rel
+    |> String.replace(~r{\s}, "_")
     |> Path.dirname()
     |> Path.split()
   end
