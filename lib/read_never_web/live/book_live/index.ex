@@ -88,8 +88,8 @@ defmodule ReadNeverWeb.BookLive.Index do
     book = BookShelf.get_book!(id)
     {:ok, _} = BookShelf.update_book(book, %{last_read_datetime: DateTime.now!("Etc/UTC")})
 
-    # TODO: test on windows
-    System.cmd("cmd", ["start", book.filepath])
+    # NOTE: only for windows
+    System.cmd("cmd.exe", ["/c", book.filepath])
     {:noreply, socket}
   end
 
