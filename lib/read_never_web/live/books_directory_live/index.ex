@@ -50,6 +50,13 @@ defmodule ReadNeverWeb.BooksDirectoryLive.Index do
   end
 
   def handle_info(
+        %{topic: "book_gathering", event: "book_added", payload: %{book: _book}},
+        socket
+      ) do
+    {:noreply, socket}
+  end
+
+  def handle_info(
         %{topic: "book_gathering", event: "book_deleted", payload: %{book: _book}},
         socket
       ) do

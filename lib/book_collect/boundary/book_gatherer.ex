@@ -50,7 +50,9 @@ defmodule BookCollect.Boundary.BookGatherer do
     if active_task != nil, do: Task.shutdown(active_task, :brutal_kill)
 
     task =
-      Task.async(fn -> BookGathering.search_and_create_books(books_directories, &finished/0) end)
+      Task.async(fn ->
+        BookGathering.search_and_create_books(books_directories, &book_added/1, &finished/0)
+      end)
 
     maybe_status_changed(:gathering)
     state = %{state | active_task: task}
@@ -122,9 +124,15 @@ defmodule BookCollect.Boundary.BookGatherer do
     )
   end
 
-  defp book_deleted(%Book{} = book) do
-    IO.inspect(book, label: "book_del")
+  defp book_added(%Book{} = book) do
+    ReadNeverWeb.Endpoint.broadcast!(
+      "book_gathering",
+      "book_added",
+      %{book: book}
+    )
+  end
 
+  defp book_deleted(%Book{} = book) do
     ReadNeverWeb.Endpoint.broadcast!(
       "book_gathering",
       "book_deleted",

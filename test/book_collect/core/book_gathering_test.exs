@@ -18,8 +18,9 @@ defmodule BookCollect.Core.BookGatheringTest do
       books_directory =
         books_directory_fixture(%{name: directory_name, directory_path: directory_path})
 
-      callback = fn -> nil end
-      BookGathering.search_and_create_books([books_directory], callback)
+      added_callback = fn _book -> nil end
+      finish_callback = fn -> nil end
+      BookGathering.search_and_create_books([books_directory], added_callback, finish_callback)
       books = BookShelf.list_books() |> Enum.sort_by(& &1.filepath)
 
       book_filepath = books |> Enum.map(& &1.filepath)

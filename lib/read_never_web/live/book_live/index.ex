@@ -42,6 +42,14 @@ defmodule ReadNeverWeb.BookLive.Index do
   end
 
   def handle_info(
+        %{topic: "book_gathering", event: "book_added", payload: %{book: book}},
+        socket
+      ) do
+    socket = socket |> stream_insert(:books, book)
+    {:noreply, socket}
+  end
+
+  def handle_info(
         %{topic: "book_gathering", event: "book_deleted", payload: %{book: book}},
         socket
       ) do
