@@ -38,6 +38,8 @@ defmodule BookCollect.Core.BookGathering do
       end
     end
 
+    BookShelf.delete_book_tags_not_used!()
+
     finish_callback.()
   end
 end

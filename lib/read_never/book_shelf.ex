@@ -478,6 +478,20 @@ defmodule ReadNever.BookShelf do
     Repo.delete(book_tag)
   end
 
+  def delete_book_tags_not_used!() do
+    {:ok, _} =
+      Repo.transaction(fn ->
+        Repo.all(BookTag)
+        |> Repo.preload([:books])
+        |> Enum.filter(fn t -> length(t.books) == 0 end)
+        |> Enum.each(fn t ->
+          {:ok, _} = delete_book_tag(t)
+        end)
+      end)
+
+    :ok
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking book_tag changes.
 
