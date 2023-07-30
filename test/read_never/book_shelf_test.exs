@@ -264,15 +264,16 @@ defmodule ReadNever.BookShelfTest do
     end
 
     test "delete_book_tags_not_used!/0 deletes the book_tags not used" do
-      book = book_fixture()
+      book_tag_used = book_tag_fixture(%{name: "used_tag"})
+      book_tag_not_used = book_tag_fixture(%{name: "unused_tag"})
 
-      book_tag_used = book_tag_fixture(%{book: book})
-      book_tag_not_used = book_tag_fixture()
+      assert BookShelf.list_book_tags() == [book_tag_used, book_tag_not_used]
+
+      book = book_fixture(%{book_tags: [book_tag_used]})
 
       BookShelf.delete_book_tags_not_used!()
 
-      alive_tags = BookShelf.list_book_tags()
-      assert alive_tags = [book_tag_used]
+      assert BookShelf.list_book_tags() == [book_tag_used]
     end
 
     test "change_book_tag/1 returns a book_tag changeset" do
