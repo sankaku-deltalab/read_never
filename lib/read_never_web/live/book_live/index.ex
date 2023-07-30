@@ -6,6 +6,10 @@ defmodule ReadNeverWeb.BookLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      :ok = ReadNeverWeb.Endpoint.subscribe("book_gathering")
+    end
+
     {:ok, stream(socket, :books, BookShelf.list_books())}
   end
 
@@ -35,6 +39,21 @@ defmodule ReadNeverWeb.BookLive.Index do
   @impl true
   def handle_info({ReadNeverWeb.BookLive.FormComponent, {:saved, book}}, socket) do
     {:noreply, stream_insert(socket, :books, book)}
+  end
+
+  def handle_info(
+        %{topic: "book_gathering", event: "book_deleted", payload: %{book: book}},
+        socket
+      ) do
+    socket = socket |> stream_delete(:books, book)
+    {:noreply, socket}
+  end
+
+  def handle_info(
+        %{topic: "book_gathering", event: "status_changed", payload: %{status: _status}},
+        socket
+      ) do
+    {:noreply, socket}
   end
 
   @impl true

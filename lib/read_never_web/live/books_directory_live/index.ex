@@ -50,6 +50,13 @@ defmodule ReadNeverWeb.BooksDirectoryLive.Index do
   end
 
   def handle_info(
+        %{topic: "book_gathering", event: "book_deleted", payload: %{book: _book}},
+        socket
+      ) do
+    {:noreply, socket}
+  end
+
+  def handle_info(
         %{topic: "book_gathering", event: "status_changed", payload: %{status: status}},
         socket
       ) do
@@ -76,7 +83,19 @@ defmodule ReadNeverWeb.BooksDirectoryLive.Index do
     {:noreply, socket}
   end
 
+  @impl true
+  def handle_event("release_books", _params, socket) do
+    BookShelf.list_books()
+    |> BookCollect.Boundary.BookGatherer.request_releasing()
+
+    {:noreply, socket}
+  end
+
   def can_start_gathering?(gathering_status) do
+    gathering_status == :inactive
+  end
+
+  def can_start_releasing?(gathering_status) do
     gathering_status == :inactive
   end
 end

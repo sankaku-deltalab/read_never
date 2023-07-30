@@ -25,7 +25,7 @@ defmodule BookCollect.Core.BookGathering do
   def unregister_books_not_exist(books, delete_callback, finish_callback) do
     for book <- books do
       with false <- File.exists?(book.filepath),
-           {:ok} <- BookShelf.delete_book(book) do
+           {:ok, _book} <- BookShelf.delete_book(book) do
         delete_callback.(book)
       end
     end

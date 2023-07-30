@@ -15,6 +15,14 @@
   <% end %>
 </div>
 
+<div>
+  <%= if can_start_releasing?(@gathering_status) do %>
+    <.button phx-click="release_books">Delete books not exist</.button>
+  <% else %>
+    <.button disabled>(Loading)</.button>
+  <% end %>
+</div>
+
 <.table
   id="books_directories"
   rows={@streams.books_directories}
