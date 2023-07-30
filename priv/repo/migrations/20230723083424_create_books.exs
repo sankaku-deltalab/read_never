@@ -6,7 +6,7 @@ defmodule ReadNever.Repo.Migrations.CreateBooks do
       add :filepath, :string, null: false
       add :name, :string, null: false
       add :last_read_datetime, :utc_datetime, null: true
-      add :books_directory_id, references(:books_directories, on_delete: :nothing), null: false
+      add :books_directory_id, references(:books_directories, on_delete: :delete_all), null: false
 
       timestamps()
     end
