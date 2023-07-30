@@ -1,10 +1,5 @@
 <.header>
   Listing Books
-  <:actions>
-    <.link patch={~p"/books/new"}>
-      <.button>New Book</.button>
-    </.link>
-  </:actions>
 </.header>
 
 <.table
@@ -12,34 +7,42 @@
   rows={@streams.books}
   row_click={fn {_id, book} -> JS.navigate(~p"/books/#{book}") end}
 >
-  <:col :let={{_id, book}} label="Filepath"><%= book.filepath %></:col>
   <:col :let={{_id, book}} label="Name"><%= book.name %></:col>
-  <:col :let={{_id, book}} label="Last read datetime"><%= book.last_read_datetime %></:col>
-  <:col :let={{_id, book}} label="Tags"><%= book.tags_as_text %></:col>
+  <:col :let={{_id, book}} label="Status"><%= book_priority_text(book) %></:col>
+  <:col :let={{_id, book}} label="Last read datetime">
+    <%= last_read_dt_str(book.last_read_datetime) %>
+  </:col>
+  <:col :let={{_id, book}} label="Tags"><%= shorten_tags_text(book.tags_as_text) %></:col>
+
+  <:action :let={{_id, book}}>
+    <.button phx-click={JS.push("open_book", value: %{id: book.id})}>Open</.button>
+  </:action>
   <:action :let={{_id, book}}>
     <div class="sr-only">
       <.link navigate={~p"/books/#{book}"}>Show</.link>
     </div>
     <.link patch={~p"/books/#{book}/edit"}>Edit</.link>
   </:action>
-  <:action :let={{id, book}}>
+  <%!-- <:action :let={{id, book}}>
     <.link
       phx-click={JS.push("delete", value: %{id: book.id}) |> hide("##{id}")}
       data-confirm="Are you sure?"
     >
       Delete
     </.link>
-  </:action>
-  <:action :let={{_id, book}}>
-    <.button phx-click={JS.push("open_book", value: %{id: book.id})} >Open</.button>
-  </:action>
-  <:action :let={{_id, book}}>
-    <div><%= Book.current_priority(book) %></div>
-  </:action>
-  <:action :let={{_id, book}}>
-    <%= for {priority, name} <- [{:new, "new"}, {:reading, "reading"}, {:read_next, "read-next"}, {:read_later, "read-later"}, {:read_never, "read-never"}] do %>
-        <.button phx-click={JS.push("set_book_priority", value: %{id: book.id, priority: priority})} ><%= name%></.button>
-    <% end %>
+  </:action> --%>
+  <:action :let={{id, book}}>
+    <button
+      phx-click={JS.toggle(to: "##{id}_dropdown")}
+      phx-click-away={JS.hide(to: "##{id}_dropdown")}
+    >
+      Status
+    </button>
+    <.live_component
+      module={ReadNeverWeb.BookLive.PriorityDropdown}
+      id={"#{id}_dropdown"}
+      book={book}
+    />
   </:action>
 </.table>
 

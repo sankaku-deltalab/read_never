@@ -70,19 +70,9 @@ defmodule ReadNeverWeb.BookLive.FormComponent do
     end
   end
 
-  defp save_book(socket, :new, book_params) do
-    case BookShelf.create_book(book_params) do
-      {:ok, book} ->
-        notify_parent({:saved, book})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Book created successfully")
-         |> push_patch(to: socket.assigns.patch)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
+  defp save_book(socket, :new, _book_params) do
+    # Do not create new book from here
+    {:noreply, socket}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do

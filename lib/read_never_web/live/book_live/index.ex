@@ -10,7 +10,18 @@ defmodule ReadNeverWeb.BookLive.Index do
       :ok = ReadNeverWeb.Endpoint.subscribe("book_gathering")
     end
 
-    {:ok, stream(socket, :books, BookShelf.list_books())}
+    sort_table = %{
+      new: 1,
+      read_next: 2,
+      read_later: 3,
+      read_never: 4
+    }
+
+    books =
+      BookShelf.list_books()
+      |> Enum.sort_by(&sort_table[Book.current_priority(&1)])
+
+    {:ok, stream(socket, :books, books)}
   end
 
   @impl true
@@ -96,5 +107,44 @@ defmodule ReadNeverWeb.BookLive.Index do
     socket = socket |> stream_insert(:books, reloaded_book)
 
     {:noreply, socket}
+  end
+
+  def last_read_dt_str(%DateTime{} = last_read_dt) do
+    # as Japan time
+    last_read_dt
+    |> DateTime.add(9, :hour)
+    |> DateTime.to_iso8601()
+    |> String.replace("T", " ")
+    |> String.replace("Z", "")
+  end
+
+  def last_read_dt_str(nil = _last_read_dt) do
+    ""
+  end
+
+  def shorten_tags_text(tags_text) when is_bitstring(tags_text) do
+    Book.split_tags_as_text(tags_text)
+    |> Enum.map(fn t ->
+      cond do
+        String.length(t) > 8 -> String.slice(t, 0..4) <> "..."
+        true -> t
+      end
+    end)
+    |> Enum.join(" ")
+  end
+
+  def book_priority_text(%Book{} = book) do
+    texts =
+      Map.new([
+        {:new, "New"},
+        {:reading, "Reading"},
+        {:read_next, "Read next"},
+        {:read_later, "Read later"},
+        {:read_never, "Read never"}
+      ])
+
+    book
+    |> Book.current_priority()
+    |> then(fn p -> Map.fetch!(texts, p) end)
   end
 end
