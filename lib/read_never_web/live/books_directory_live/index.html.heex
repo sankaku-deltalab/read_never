@@ -8,19 +8,23 @@
 </.header>
 
 <div>
-  <%= if not @is_book_gathering do %>
+  <%= if can_start_gathering?(@gathering_status) do %>
     <.button phx-click="load_books">Load books</.button>
   <% else %>
-    <.button disable>(Loading)</.button>
+    <.button disabled>(Loading)</.button>
   <% end %>
 </div>
 
 <.table
   id="books_directories"
   rows={@streams.books_directories}
-  row_click={fn {_id, books_directory} -> JS.navigate(~p"/books_directories/#{books_directory}") end}
+  row_click={
+    fn {_id, books_directory} -> JS.navigate(~p"/books_directories/#{books_directory}") end
+  }
 >
-  <:col :let={{_id, books_directory}} label="Directory path"><%= books_directory.directory_path %></:col>
+  <:col :let={{_id, books_directory}} label="Directory path">
+    <%= books_directory.directory_path %>
+  </:col>
   <:col :let={{_id, books_directory}} label="Name"><%= books_directory.name %></:col>
   <:action :let={{_id, books_directory}}>
     <div class="sr-only">
@@ -38,7 +42,12 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="books_directory-modal" show on_cancel={JS.patch(~p"/books_directories")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="books_directory-modal"
+  show
+  on_cancel={JS.patch(~p"/books_directories")}
+>
   <.live_component
     module={ReadNeverWeb.BooksDirectoryLive.FormComponent}
     id={@books_directory.id || :new}

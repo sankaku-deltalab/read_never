@@ -4,13 +4,14 @@ defmodule BookCollect.Boundary.BookGatherer do
   alias BookCollect.Core.BookGathering
 
   @me __MODULE__
+  @type status :: :inactive | :gathering | :releasing
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, nil, name: @me)
   end
 
-  def request_start(books_directories) do
-    GenServer.call(@me, {:request_start, books_directories})
+  def request_gathering(books_directories) do
+    GenServer.call(@me, {:request_gathering, books_directories})
   end
 
   def request_abort() do
@@ -29,46 +30,46 @@ defmodule BookCollect.Boundary.BookGatherer do
 
   @impl true
   def init(_) do
-    {:ok, %{gatherer_task: nil}}
+    {:ok, %{active_task: nil}}
   end
 
   @impl true
   def handle_call(
-        {:request_start, books_directories},
+        {:request_gathering, books_directories},
         _from,
-        %{gatherer_task: gatherer_task} = state
+        %{active_task: active_task} = state
       ) do
-    if gatherer_task != nil, do: Task.shutdown(gatherer_task, :brutal_kill)
+    if active_task != nil, do: Task.shutdown(active_task, :brutal_kill)
 
     task =
       Task.async(fn -> BookGathering.search_and_create_books(books_directories, &finished/0) end)
 
-    maybe_status_changed(true)
-    state = %{state | gatherer_task: task}
+    maybe_status_changed(:gathering)
+    state = %{state | active_task: task}
     {:reply, :ok, state}
   end
 
   @impl true
-  def handle_call(:request_abort, _from, %{gatherer_task: gatherer_task} = state) do
-    if gatherer_task != nil, do: Task.shutdown(gatherer_task, :brutal_kill)
+  def handle_call(:request_abort, _from, %{active_task: active_task} = state) do
+    if active_task != nil, do: Task.shutdown(active_task, :brutal_kill)
 
-    maybe_status_changed(false)
-    state = %{state | gatherer_task: nil}
+    maybe_status_changed(:inactive)
+    state = %{state | active_task: nil}
     {:reply, :ok, state}
   end
 
   @impl true
-  def handle_call(:is_running, _from, %{gatherer_task: gatherer_task} = state) do
-    is_running = gatherer_task != nil
+  def handle_call(:is_running, _from, %{active_task: active_task} = state) do
+    is_running = active_task != nil
     {:reply, is_running, state}
   end
 
   @impl true
-  def handle_cast(:finished, %{gatherer_task: gatherer_task} = state) do
-    if gatherer_task != nil, do: Task.shutdown(gatherer_task)
+  def handle_cast(:finished, %{active_task: active_task} = state) do
+    if active_task != nil, do: Task.shutdown(active_task)
 
-    maybe_status_changed(false)
-    state = %{state | gatherer_task: nil}
+    maybe_status_changed(:inactive)
+    state = %{state | active_task: nil}
     {:noreply, state}
   end
 
@@ -78,11 +79,11 @@ defmodule BookCollect.Boundary.BookGatherer do
     {:noreply, state}
   end
 
-  defp maybe_status_changed(is_running) when is_boolean(is_running) do
+  defp maybe_status_changed(status) when status in [:inactive, :gathering, :releasing] do
     ReadNeverWeb.Endpoint.broadcast!(
       "book_gathering",
       "status_changed",
-      %{is_running: is_running}
+      %{status: status}
     )
   end
 end

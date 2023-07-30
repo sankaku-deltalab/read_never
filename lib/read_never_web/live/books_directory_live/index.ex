@@ -13,7 +13,7 @@ defmodule ReadNeverWeb.BooksDirectoryLive.Index do
     socket =
       socket
       |> stream(:books_directories, BookShelf.list_books_directories())
-      |> assign(:is_book_gathering, false)
+      |> assign(:gathering_status, :inactive)
 
     {:ok, socket}
   end
@@ -50,26 +50,15 @@ defmodule ReadNeverWeb.BooksDirectoryLive.Index do
   end
 
   def handle_info(
-        %{topic: "book_gathering", event: "status_changed", payload: %{is_running: is_running}},
+        %{topic: "book_gathering", event: "status_changed", payload: %{status: status}},
         socket
       ) do
     socket =
       socket
-      |> assign(:is_book_gathering, is_running)
+      |> assign(:gathering_status, status)
 
     {:noreply, socket}
   end
-
-  # @impl true
-  # def handle_in("status_changed", {}, socket) do
-  #   IO.inspect("status_changed")
-
-  #   socket =
-  #     socket
-  #     |> assign(:is_book_gathering, is_running)
-
-  #   {:noreply, socket}
-  # end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
@@ -82,19 +71,12 @@ defmodule ReadNeverWeb.BooksDirectoryLive.Index do
   @impl true
   def handle_event("load_books", _params, socket) do
     BookShelf.list_books_directories()
-    |> BookCollect.Boundary.BookGatherer.request_start()
+    |> BookCollect.Boundary.BookGatherer.request_gathering()
 
     {:noreply, socket}
   end
 
-  @impl true
-  def handle_in("status_changed", %{is_running: is_running}, socket) do
-    IO.inspect("status_changed")
-
-    socket =
-      socket
-      |> assign(:is_book_gathering, is_running)
-
-    {:noreply, socket}
+  def can_start_gathering?(gathering_status) do
+    gathering_status == :inactive
   end
 end
